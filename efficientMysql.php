@@ -4,7 +4,8 @@
 class efficientMysql
 {
 
-	const MAX_INSERT_SIZE = 250; // kb
+	const MAX_INSERT_SIZE = 100; // kb
+	const MAX_LINE_LENGTH = 1; // kb
 
 	public function processDump($inFile, $outFile)
 	{
@@ -46,6 +47,7 @@ class efficientMysql
 		fputs($f, "\n\n-- --------------\n-- Inserting data\n-- --------------\n\n");
 
 		$insert = $statement = '';
+		$lastLine = 0;
 		$statements = [];
 		foreach ($inserts as $table => $values) {
 			$statementStart = $statement = 'INSERT INTO `' . $table . '` VALUES ';
@@ -54,12 +56,20 @@ class efficientMysql
 					$insert = substr($insert, 0, strlen($insert) - 1);
 				}
 				$statement .= $insert;
+				$lastLine += strlen($insert);
+
 				if (strlen($statement . $insert) >= 1024 * self::MAX_INSERT_SIZE) {
 					$statement .= ';';
 					fputs($f, $statement . "\n");
+					$lastLine = 0;
 					$statement = $statementStart;
 				} else {
-					$statement .= ', ';
+					if ($lastLine >= 1024 * self::MAX_LINE_LENGTH) {
+						$statement .= ",\n  ";
+						$lastLine = 0;
+					} else {
+						$statement .= ', ';
+					}
 				}
 			}
 		}
