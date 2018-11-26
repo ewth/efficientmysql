@@ -9,6 +9,9 @@ class efficientMysql
 
 	public function processDump($inFile, $outFile)
 	{
+
+		die("This doesn't work at the moment and you will lose data.");
+
 		if (!file_exists($inFile) || !($f = fopen($inFile, 'r'))) {
 			die("Cannot open '$inFile'");
 		}
@@ -25,6 +28,7 @@ class efficientMysql
 
 		// Extract and group all inserts
 		$inserts = [];
+		$tables = [];
 		foreach ($matches[2] as $key => $match) {
 			$table = $matches[1][$key];
 			if (!isset($inserts[$table])) {
@@ -38,7 +42,7 @@ class efficientMysql
 		// Print all non-insert statements to file
 		$data = explode("\n", $data);
 		foreach ($data as $line) {
-			if (strlen($line) < 12 || substr($line, 0, 12) != 'INSERT INTO ') {
+			if (!preg_match('#INSERT INTO \`(.[^\`]+)` VALUES (\(.+)#', $line)) {
 				fputs($f, $line . "\n");
 			}
 		}
@@ -50,10 +54,11 @@ class efficientMysql
 		$lastLine = 0;
 		$statements = [];
 		foreach ($inserts as $table => $values) {
+			echo "\tTable `$table`...";
 			$statementStart = $statement = 'INSERT INTO `' . $table . '` VALUES ';
 			foreach ($values as $insert) {
-				if (substr($insert, strlen($insert)-1, 1) == ';') {
-					$insert = substr($insert, 0, strlen($insert) - 1);
+				if (substr($insert, (strlen($insert)-1), 1) == ';') {
+					$insert = substr($insert, 0, (strlen($insert) - 1));
 				}
 				$statement .= $insert;
 				$lastLine += strlen($insert);
@@ -72,6 +77,7 @@ class efficientMysql
 					}
 				}
 			}
+			echo " " . count($values) . " records.\n";
 		}
 		fclose($f);
 		echo "Done";
