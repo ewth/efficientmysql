@@ -8,8 +8,6 @@ Based off a Navicat dump so might not work for everything.
 
 Usage:
 
-`php run.php input.sql`
+`php run.php`
 
-It will dump the result to screen if you don't direct it into a file, e.g.:
-
-`php run.php input.sql > output.sql`
+It will automatically read from `file.sql` and output to `output.sql`.

@@ -9,7 +9,7 @@ class efficientMysql
 	public function processDump($inFile, $outFile)
 	{
 		if (!file_exists($inFile) || !($f = fopen($inFile, 'r'))) {
-			die("Cannot open '$file'");
+			die("Cannot open '$inFile'");
 		}
 		fclose($f);
 
